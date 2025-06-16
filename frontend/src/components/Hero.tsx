@@ -1,5 +1,6 @@
+// src/components/Hero.tsx
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 
 interface HeroProps {
   title?: string;
@@ -8,66 +9,81 @@ interface HeroProps {
   onClickCTA?: () => void;
 }
 
+// Variants para animaciones
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      when: 'beforeChildren' as const,
+      staggerChildren: 0.3
+    } as const
+  }
+} as const as Variants;
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 100
+    } as const
+  }
+} as const as Variants;
+
 const Hero: React.FC<HeroProps> = ({
   title = 'Lab 404',
-  subtitle = 'Descubre nuestra exclusiva colección de productos',
+  subtitle = 'Descubre nuestra colección de productos',
   ctaText = 'Explorar ahora',
-  onClickCTA,
+  onClickCTA
 }) => {
   return (
-    <section className="bg-[#FFFFFF] min-h-screen flex items-center justify-center py-16 px-4">
-      <div className="max-w-4xl mx-auto text-center">
-        {/* Título principal con transición */}
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-5xl md:text-6xl font-bold text-[#F28B82] mb-6"
-        >
-          {title}
-        </motion.h1>
+    <motion.section
+      className="relative w-screen h-screen flex flex-col justify-center items-center bg-white px-6 text-center overflow-hidden"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.h1
+        className="text-5xl sm:text-6xl font-bold text-gray-900 mb-4"
+        variants={itemVariants}
+      >
+        {title}
+      </motion.h1>
 
-        {/* Subtítulo secundario con transición suave */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-xl md:text-2xl text-gray-600 mb-8"
-        >
-          {subtitle}
-        </motion.p>
+      <motion.p
+        className="text-lg sm:text-xl text-gray-700 mb-8"
+        variants={itemVariants}
+      >
+        {subtitle}
+      </motion.p>
 
-        {/* Botón con interacción dinámica y transición */}
+      {ctaText && (
         <motion.button
-          initial={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.9 }}
-          transition={{ type: 'spring', stiffness: 300 }}
+          className="bg-[#F28B82] text-white font-semibold py-3 px-6 rounded-lg hover:bg-[#F8B0A6] transition"
           onClick={onClickCTA}
-          className="bg-[#F28B82] text-[#FFFFFF] font-semibold py-3 px-8 rounded-xl shadow-lg hover:bg-[#FFAAA6] transition-colors duration-300"
+          variants={itemVariants}
         >
           {ctaText}
         </motion.button>
+      )}
 
-        {/* Sección informativa o testimonial */}
-        <div className="mt-10 bg-[#F8D7DA] py-6 px-4 rounded-lg shadow-sm">
-          <p className="text-[#333333] italic">
-            Explora las últimas tendencias y encuentra tu próximo producto favorito.
-          </p>
-        </div>
-      </div>
-
-      {/* Detalle decorativo minimalista */}
-      <div className="absolute bottom-0 left-0 w-full">
+      {/* Ola decorativa */}
+      <motion.div
+        className="absolute bottom-0 left-0 w-full pointer-events-none"
+        variants={itemVariants}
+      >
         <svg
           viewBox="0 0 1440 320"
           xmlns="http://www.w3.org/2000/svg"
           className="fill-current text-[#FFAAA6]"
         >
-          <path d="M0,160L1440,32L1440,320L0,320Z"></path>
+          <path d="M0,160L1440,32L1440,320L0,320Z" />
         </svg>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 };
 

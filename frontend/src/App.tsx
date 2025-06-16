@@ -1,24 +1,14 @@
-import { motion } from "framer-motion"
-import { useState } from 'react'
+import React from 'react';
+import Hero from './components/Hero'; // Ajuste de ruta: ahora busca Hero.tsx en la misma carpeta
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <motion.h2
-      initial= {{
-        rotate: '0deg'
-
-      }}
-      animate={{
-        rotate: "180deg"
-      }} 
-      className='text-2xl text-blue-500'
-      >
-        Hello World</motion.h2>
-    </>
-  )
+    <Hero
+      title="Bienvenido a Lab 404"                          // Prop title obligatorio
+      subtitle="Descubre nuestra colección de cursos"       // Opcional
+      ctaText="¡Empezar ahora!"                             // Prop ctaText obligatorio
+    />
+  );
 }
 
-export default App
+export default App;

@@ -48,7 +48,7 @@ const floatVariants = {
 } as const as Variants;
 
 const Hero: React.FC<HeroProps> = ({
-  title = 'Lab 404',
+  title = 'Learn 404',
   subtitle = '¡Domina las ultimas tecnologias aqui!',
   ctaText = 'Empezar ahora',
   onClickCTA,

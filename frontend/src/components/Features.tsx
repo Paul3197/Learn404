@@ -1,149 +1,106 @@
-// src/components/Features.tsx
-import React, { useState, useEffect } from 'react'
-import { motion, type Variants } from 'framer-motion'
+// Features.tsx
+import React, { useState, useEffect } from 'react';
+import OrbitCircle from './OrbitCircle';
+import type { Feature } from './featuresData';
+import NextButton from './NextButton';
+// Aquí importas tu array de características (cada una con title y desc)
+import { features } from './featuresData';
 
-// 1) Definición de las características a mostrar en los círculos
-const features = [
-  { title: 'Responsive', desc: 'Se adapta a cualquier pantalla.' },
-  { title: 'Animaciones', desc: 'Interacciones suaves con Framer Motion.' },
-  { title: 'Integración AWS', desc: 'Deploy en S3, CloudFront y Cognito.' },
-  { title: 'Modularidad', desc: 'Componentes reutilizables y mantenibles.' },
-  { title: 'Ultra rápido', desc: 'Rendimiento optimizado con Vite.' },
-  { title: 'Dark Mode', desc: 'Cambio de tema oscuro y claro.' },
-  { title: 'Accesibilidad', desc: 'Cumple WCAG y ARIA.' },
-  { title: 'SEO Friendly', desc: 'Optimizado para buscadores.' },
-  { title: 'TypeScript', desc: 'Tipos seguros y autocompletado.' },
-  { title: 'Testing', desc: 'Configuración con Jest y React Testing Library.' },
-]
-
-// 2) Variantes para animación del contenedor (stagger de hijos)
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { when: 'beforeChildren', staggerChildren: 0.2 },
-  },
-}
-
-// 3) Variantes para animación continua de rotación de los círculos
-const floatVariants: Variants = {
-  animate: {
-    rotate: 360,
-    transition: { repeat: Infinity, duration: 20, ease: 'linear' },
-  },
-}
+const PAGE_SIZE = 4;      // Cuántos círculos mostrar por “página”
+const ORBIT_RADIUS = 120; // Radio de la órbita (px)
+const CIRCLE_SIZE = 140;   // Diámetro de cada círculo (px)
 
 const Features: React.FC = () => {
-  // 4) Estado para controlar el índice de inicio de la vista de características
-  const [start, setStart] = useState(0)
-  const total = features.length
+  // --- Estado para paginación ---
+  // 'start' es el índice inicial dentro de 'features' para el slice actual
+  const [start, setStart] = useState(0);
 
-  // 5) Estado para detectar si la pantalla es menor a 430px
+  // --- Estado para responsive ---
+  // 'isMobile' será true si la pantalla es menor a 1100px
   const [isMobile, setIsMobile] = useState(
-    typeof window !== 'undefined' ? window.innerWidth < 430 : true
-  )
+    window.innerWidth < 1100
+  );
 
-  // 6) Efecto para actualizar isMobile al redimensionar la ventana
+  // Efecto que escucha cambios de tamaño de ventana y actualiza 'isMobile'
   useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 430)
-    window.addEventListener('resize', onResize)
-    return () => window.removeEventListener('resize', onResize)
-  }, [])
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1100);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  // 7) Seleccionar 4 características a mostrar a partir del índice 'start'
-  const slice = Array.from({ length: 4 }, (_, i) => features[(start + i) % total])
+  // Slice de features que muestra solamente PAGE_SIZE elementos
+  const currentFeatures = features.slice(
+    start,
+    start + PAGE_SIZE
+  );
 
-  // 8) Mover al siguiente conjunto de características
-  const handleNext = () => setStart((prev) => (prev + 4) % total)
+  // Avanza al siguiente grupo de PAGE_SIZE; vuelve a 0 al llegar al final
+  const handleNext = () => {
+    setStart(prev => {
+      const next = prev + PAGE_SIZE;
+      return next >= features.length ? 0 : next;
+    });
+  };
 
-  // 9) Clases condicionales basadas en el tamaño de pantalla
-  const titleClass = isMobile
-    ? 'text-3xl font-bold mb-12'                         // estilo original en mobile
-    : 'text-3xl font-bold mb-12 transform translate-y-30' // estilo modificado en desktop
-
-  const floatWrapperClass = isMobile
-    ? 'absolute inset-0'                                  // estilo original en mobile
-    : 'absolute inset-0 transform translate-y-10'         // estilo modificado en desktop
-
-  // 9.1) Clases condicionales para el botón en desktop
-  const buttonClass = isMobile
-    ? 'w-28 h-28 bg-[#F28B82] text-white rounded-full shadow-lg flex items-center justify-center font-semibold'
-    : 'w-28 h-28 bg-[#F28B82] text-white rounded-full shadow-lg flex items-center justify-center font-semibold transform translate-y-10'
+  // Callback cuando un OrbitCircle es clickeado
+  const handleSelect = (feat: Feature) => {
+    // Aquí podrías disparar tu animación o mostrar un modal, por ejemplo
+    console.log('Feature seleccionada:', feat.title);
+  };
 
   return (
-    <motion.section
-      id="características"
-      className="relative w-screen h-screen flex flex-col items-center justify-center bg-white overflow-hidden"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* 10) Onda SVG animada: se mueve horizontalmente */}
-      <motion.div
-        className="absolute bottom-0 w-full overflow-hidden leading-[0]"
-        animate={{ x: ['0%', '-10%', '0%'] }}
-        transition={{ repeat: Infinity, duration: 8, ease: 'linear' }}
-      >
-        <svg className="relative block w-full" viewBox="0 0 1440 320">
-          <path
-            d="M0,128L48,138.7C96,149,192,171,288,154.7C384,139,480,85,576,96C672,107,768,181,864,186.7C960,192,1056,128,1152,106.7C1248,85,1344,107,1392,117.3L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-            fill="#F5F5F5"
-          />
-        </svg>
-      </motion.div>
-
-      {/* 11) Título de la sección */}
-      <h2 className={titleClass}>Características</h2>
-
-      {/* 12) Contenedor de los círculos y el botón */}
-      <div
-        className="relative mt-16"
+    <section>
+      {/* Título principal */}
+      <h2
         style={{
-          '--circle-size': 'clamp(9rem, 15vw, 12rem)',
-          '--orbit-radius': 'clamp(8rem, 20vw, 10rem)',
-          width: 'calc(2 * var(--orbit-radius) + var(--circle-size))',
-          height: 'calc(2 * var(--orbit-radius) + var(--circle-size))',
-        } as React.CSSProperties}
+        fontSize: isMobile ? '1.75rem' : '2.5rem',
+        textAlign: 'center',
+        color: 'var(--accent-color)',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        margin: '1.5rem 0',
+        fontFamily: 'inherit',
+        textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+        }}
       >
-        {/* 13) Círculos flotantes con animación */}
-        <motion.div className={floatWrapperClass} variants={floatVariants} animate="animate">
-          {slice.map((feat, idx) => (
-            <motion.div
-              key={idx}
-              className="absolute rounded-full bg-[#F8D7DA] flex items-center justify-center shadow-lg"
-              style={{
-                width: 'var(--circle-size)',
-                height: 'var(--circle-size)',
-                top: '50%',
-                left: '50%',
-                marginTop: `calc(-1 * var(--circle-size) / 2 + var(--orbit-radius) * cos(${(idx / 4) * 2 * Math.PI}rad))`,
-                marginLeft: `calc(-1 * var(--circle-size) / 2 + var(--orbit-radius) * sin(${(idx / 4) * 2 * Math.PI}rad))`,
-              }}
-            >
-              {/* 14) Contenido de cada círculo */}
-              <div className="text-center px-4">
-                <h3 className="font-semibold">{feat.title}</h3>
-                <p className="text-sm">{feat.desc}</p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+      Características
+      </h2>
 
-        {/* 15) Botón "Siguiente" siempre centrado con clase condicional */}
-        <motion.div className="absolute inset-0 flex items-center justify-center">
-          <motion.button
-            onClick={handleNext}
-            className={buttonClass}
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-          >
-            Siguiente
-          </motion.button>
-        </motion.div>
+      {/* Onda SVG decorativa */}
+      <div className="wave-container">
+        {/* INSERTA AQUÍ TU SVG */}
       </div>
-    </motion.section>
-  )
-}
 
-export default Features
+      {/* Contenedor de los círculos en posición relativa */}
+      <div
+        style={{
+          position: 'relative',
+          width: isMobile ? '100vw' : '600px',
+          height: isMobile ? '100vw' : '600px',
+          margin: '0 auto',
+        }}
+      >
+        {currentFeatures.map((feat, idx) => (
+          <OrbitCircle
+            key={feat.title}
+            feat={feat}
+            idx={idx}
+            total={currentFeatures.length}
+            radius={ORBIT_RADIUS}
+            size={CIRCLE_SIZE}
+            isMobile={isMobile}
+            onSelect={handleSelect}
+          />
+        ))}
+
+        {/* Botón central para ir a la siguiente “página” de features */}
+        <NextButton onNext={handleNext} isMobile={isMobile} />
+      </div>
+    </section>
+  );
+};
+
+export default Features;

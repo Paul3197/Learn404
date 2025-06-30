@@ -1,71 +1,114 @@
 // NextButton.tsx
+// ---------------
+// Este componente React representa el botón central de tu
+// órbita de características.  Su responsabilidad es simple:
+// mostrar el texto "Mas Características" y cambiar su color de
+// fondo cuando el puntero lo presiona o lo mantiene encima.  
+// Además, acepta un manejador onClick externo para que la lógica
+// de paginación / rotación de características viva en un nivel
+// superior.
 
-import React from 'react';
-// Importamos solo el runtime de motion
-import { motion } from 'framer-motion';
-// Importamos el tipo Variants para TS, pero sin incluirlo en el bundle
-import type { Variants } from 'framer-motion';
+import React, { useState } from 'react';
 
-export interface NextButtonProps {
-  onNext: () => void;   // Callback que avanza al siguiente slice de features
-  isMobile: boolean;    // Para ajustar tamaño y comportamiento según pantalla
+//--------------------------------------------------------------
+// 1. Interfaz de las propiedades (props) que el componente acepta
+//--------------------------------------------------------------
+interface NextButtonProps {
+  /**
+   * Función que se ejecutará cuando el usuario haga clic.
+   * La lógica de avanzar a las siguientes características se
+   * define fuera de este componente para mantener la separación
+   * de responsabilidades.
+   */
+  onClick: () => void;
+
+  /**
+   * Clases Tailwind opcionales que quieras inyectar desde arriba
+   * para customizar estilos sin tocar el componente.
+   */
+  className?: string;
 }
 
-// Definimos las variantes de animación (solo para TS)
-const buttonVariants: Variants = {
-  initial: {
-    opacity: 0,
-    scale: 0.5,        // Comienza pequeño y transparente
-  },
-  animate: {
-    opacity: 1,
-    scale: 1,          // Finaliza en tamaño normal
-    transition: {
-      type: 'spring',
-      stiffness: 120,
-      damping: 12,
-    },
-  },
-};
+//--------------------------------------------------------------
+// 2. Componente funcional
+//--------------------------------------------------------------
+/**
+ * Botón central reutilizable y completamente estilizado.
+ * - Cambia de color al pasar el ratón (hover) y al presionar.
+ * - Mantiene su forma circular y tamaño responsivo.
+ * - Permite clases extra a través de la prop `className`.
+ */
+const NextButton: React.FC<NextButtonProps> = ({ onClick, className = '' }) => {
+  //----------------------------------------------------------
+  // 2.1. Estado interno para hover y press
+  //----------------------------------------------------------
+  const [isPressed, setIsPressed] = useState(false);   // ¿Está presionado?
+  const [isHovered, setIsHovered] = useState(false);   // ¿Está en hover?
 
-const NextButton: React.FC<NextButtonProps> = ({ onNext, isMobile }) => {
-  const size = isMobile ? 60 : 100;
+  //----------------------------------------------------------
+  // 2.2. Manejadores de eventos de ratón
+  //----------------------------------------------------------
+  const handleMouseDown = () => setIsPressed(true);     // Presionado → true
+  const handleMouseUp = () => setIsPressed(false);      // Suelto → false
+  const handleMouseEnter = () => setIsHovered(true);    // Hover → true
+  const handleMouseLeave = () => {                     // Sale del botón
+    setIsHovered(false);
+    setIsPressed(false);   // Reset por si el usuario suelta fuera
+  };
+
+  //----------------------------------------------------------
+  // 2.3. Lógica que decide el color de fondo (Tailwind bg-*)
+  //----------------------------------------------------------
+  let bgClass = 'bg-[#FFAAA6]';        // Estado base
+  if (isPressed) bgClass = 'bg-[#F8D7DA]';  // Presionado → gris más claro
+  else if (isHovered) bgClass = 'bg-[#F28B82]'; // Hover → gris más oscuro
+
+  //----------------------------------------------------------
+  // 2.4. Renderizado
+  //----------------------------------------------------------
   return (
-<motion.button
-  variants={buttonVariants}
-  initial="initial"
-  animate="animate"
-  whileHover={{ scale: 1.1, boxShadow: '0 0 20px rgba(255,255,255,0.5)' }}
-  whileTap={{ scale: 0.9 }}
-  onClick={onNext}
-  style={{
-    position: 'absolute',
-    top: '38.2%',
-    left: '41.7%',
-    transform: 'translate(-50%, -50%)',
-    width: size,
-    height: size,
-    borderRadius: '50%',
-    border: 'none',
-    // Gradiente del rojo coral suave al rojo claro elegante
-    background: 'linear-gradient(135deg, #FFAAA6, #F28B82)',
-    // Texto blanco puro para buen contraste
-    color: '#FFFFFF',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: isMobile ? '1rem' : '1.25rem',
-    fontWeight: 600,
-    fontFamily: 'inherit',
-    // Sutil sombra para dar profundidad
-    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
-  }}
->
-      Next
-    </motion.button>
+    <button
+      type="button"           /* Buen hábito: especificar el tipo */
+      onClick={onClick}        /* Delegamos la acción al padre */
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      className={`
+        /* Posicionamiento absoluto para centrar en la pantalla */
+        absolute left-50vw top-50vw 
+        /* Flexbox → centra el texto dentro del círculo */
+        flex items-center justify-center
+        /* Tamaño responsivo: 23% del ancho de la ventana */
+        w-[20vw] h-[20vw]
+        /* Límite máximo para pantallas grandes */
+        max-w-[200px] max-h-[200px]
+
+        /* --- Claves para que el texto NO se salga --- */
+        whitespace-normal        /* Permite saltos de línea */
+        break-words              /* Rompe palabras largas */
+        overflow-hidden          /* Oculta cualquier rebalse minúsculo */
+        leading-snug             /* Ajuste vertical del interlineado */
+        text-[clamp(0.75rem,3.5vw,1.1rem)] /* Fuente fluida */
+        
+        /* Estética */
+        rounded-full text-gray-800 shadow-md cursor-pointer
+        
+        /* Transición suave del color de fondo */
+        transition-colors duration-200
+        
+        /* Color dinámico calculado arriba */
+        ${bgClass}
+        
+        /* Clases extra proporcionadas desde fuera */
+        ${className}
+        
+      `}
+    >
+      {/* Texto visible dentro del botón */}
+      Más Características
+    </button>
   );
 };
-
 
 export default NextButton;
